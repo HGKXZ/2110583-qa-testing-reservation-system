@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { RegisterPage } from '../pages/Auth/RegisterPage';
+import { LoginPage } from '../pages/Auth/LoginPage';
 
 test.describe('Security Test: Password Policy (Mocked API)', () => {
   let registerPage: RegisterPage;
@@ -7,7 +8,6 @@ test.describe('Security Test: Password Policy (Mocked API)', () => {
   test.beforeEach(async ({ page }) => {
     registerPage = new RegisterPage(page);
     
-    // สมมติว่าหน้าเว็บรันอยู่ที่ localhost:3000
     await registerPage.goto();
   });
 
@@ -109,5 +109,41 @@ test.describe('Security Test: Password Policy (Mocked API)', () => {
     await registerPage.submit();
     
     await registerPage.expectErrorMessage('Password must contain at least 1 uppercase and 1 number');
+  });
+});
+
+test.describe('Security Test: Login Attempt Limitation (Mocked API)', () => {
+  let loginPage: LoginPage;
+
+  test.beforeEach(async ({ page }) => {
+    loginPage = new LoginPage(page);
+    
+    await loginPage.goto();
+  });
+
+  test('TC-SEC-006: Verify account is locked after 5 consecutive failed login attempts', async ({ page }) => {
+    const targetEmail = 'john@email.com';
+    const wrongPassword = 'WrongPassword';
+    const correctPassword = 'Password123';
+
+    // Incorrect Password  time
+    for (let i = 1; i <= 5; i++) {
+      await loginPage.login(targetEmail, wrongPassword);
+      
+      if (i < 5) {
+        await loginPage.expectErrorMessage(`Invalid credentials. Attempt ${i}/5`);
+      } else {
+        // incorrect 5 time lock user
+        await loginPage.expectErrorMessage('Account locked due to 5 failed attempts. Try again in 15 minutes.');
+      }
+    }
+
+    // correct password should cannot login
+    await loginPage.login(targetEmail, correctPassword);
+
+    await loginPage.expectErrorMessage('Account locked due to 5 failed attempts. Try again in 15 minutes.');
+    
+    // Not have success
+    await expect(loginPage.successMessage).toBeHidden();
   });
 });
