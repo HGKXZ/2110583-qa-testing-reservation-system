@@ -1,106 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mock Login Page</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 400px; }
-        .form-group { margin-bottom: 15px; }
-        input { width: 100%; padding: 8px; }
-        button { padding: 10px 15px; background: #28a745; color: white; border: none; cursor: pointer; }
-        .alert-error { color: #721c24; background: #f8d7da; padding: 10px; display: none; margin-top: 10px; }
-        .alert-success { color: #155724; background: #d4edda; padding: 10px; display: none; margin-top: 10px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TableReserve — Login</title>
+<style>
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f4f5f7;
+    --color-background-tertiary: #ebecf0;
+    --color-text-primary: #172b4d;
+    --color-text-secondary: #5e6c84;
+    --color-text-tertiary: #6b778c;
+    --color-border-tertiary: #dfe1e6;
+    --border-radius-md: 4px;
+    --border-radius-lg: 8px;
+  }
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--color-background-tertiary); font-family: Arial, sans-serif;}
+  .login-box{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:32px 28px;width:360px}
+  .login-logo{font-size:18px;font-weight:600;color:var(--color-text-primary);margin-bottom:4px}
+  .login-logo span{color:#1D9E75}
+  .login-sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:24px}
+  .error-msg{background:#FCEBEB;border:0.5px solid #E24B4A;border-radius:var(--border-radius-md);padding:8px 12px;font-size:12px;color:#A32D2D;margin-bottom:14px;display:none}
+  .success-msg{background:#E1F5EE;border:0.5px solid #5DCAA5;border-radius:var(--border-radius-md);padding:8px 12px;font-size:12px;color:#085041;margin-bottom:14px;display:none}
+  .form-group label { font-size: 14px; font-weight: 500; display: block; margin-bottom: 4px;}
+  .form-group input { width: 93%; padding: 10px; border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md);}
+  .btn-primary { background: #1D9E75; color: white; padding: 10px; border: none; border-radius: var(--border-radius-md); cursor: pointer; font-size: 14px;}
+  .btn-primary:hover { background: #15805d; }
+  /* Quick-fill test helper */
+  .test-pills{display:flex;gap:6px;margin-top:16px;flex-wrap:wrap}
+  .test-pill{padding:3px 10px;border-radius:20px;font-size:11px;cursor:pointer;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-secondary)}
+  .test-pill:hover{border-color:#1D9E75;color:#1D9E75}
+  .test-label{font-size:11px;color:var(--color-text-tertiary);margin-top:12px}
+</style>
 </head>
 <body>
-    <h2>Login (Mock UI)</h2>
-    <form id="loginForm">
-        <div class="form-group"><input type="email" id="email" placeholder="Email" required></div>
-        <div class="form-group"><input type="password" id="password" placeholder="Password" required></div>
-        <button type="submit">Login</button>
-    </form>
-    
-    <div class="alert-error"></div>
-    <div class="alert-success"></div>
-    
-    <script>
-        // 1. load mockUsers
-        const mockUsers = []
-        async function loadMockUsers() {
-            try {
-                // ยิงไป URL จำลอง เดี๋ยว Playwright จะดักจับแล้วส่งไฟล์ CSV ให้
-                const response = await fetch('https://mock-api.com/data/user.csv');
-                const csvText = await response.text();
-                
-                const lines = csvText.trim().split('\n');
-                const headers = lines[0].split(',').map(h => h.trim());
-                
-                for (let i = 1; i < lines.length; i++) {
-                    const values = lines[i].split(',').map(v => v.trim());
-                    let user = {};
-                    headers.forEach((h, index) => {
-                        user[h] = values[index];
-                    });
-                    mockUsers.push(user);
-                }
-                console.log("Mock Users Loaded from CSV:", mockUsers);
-            } catch (error) {
-                console.error("Failed to load CSV:", error);
-            }
+<div class="login-box">
+  <div class="login-logo">Table<span>Reserve</span></div>
+  <div class="login-sub">Restaurant Table Reservation System</div>
+
+  <div id="error-msg"  class="error-msg"   data-testid="error-message"></div>
+  <div id="success-msg" class="success-msg" data-testid="success-message"></div>
+
+  <div class="form-group" style="margin-bottom:12px">
+    <label>Email</label>
+    <input type="email" id="email" data-testid="input-email" placeholder="john@email.com" autocomplete="username">
+  </div>
+  <div class="form-group" style="margin-bottom:20px">
+    <label>Password</label>
+    <input type="password" id="password" data-testid="input-password" placeholder="••••••••" autocomplete="current-password">
+  </div>
+  <button class="btn btn-primary" style="width:100%" data-testid="btn-login" onclick="handleLogin()">Sign In →</button>
+
+  <div class="test-label">Quick fill (test):</div>
+  <div class="test-pills">
+    <div class="test-pill" data-testid="fill-customer" onclick="fillCreds('john@email.com','Password123')">Customer</div>
+    <div class="test-pill" data-testid="fill-staff"    onclick="fillCreds('staff@test.com','StaffPass1')">Staff</div>
+    <div class="test-pill" data-testid="fill-admin"    onclick="fillCreds('admin@test.com','AdminPass1')">Admin</div>
+  </div>
+</div>
+<script src="middleware.js"></script>
+<script>
+  // ==========================================
+  // 1. ระบบ Mock Database จาก CSV
+  // ==========================================
+  let mockUsers = [
+    {
+        email: "john@email.com",
+        password: "Password123",
+        name: "John Smith",
+        phone: "0812345678",
+        role: "customer",
+        token: "mock_token_customer_101"
+    },
+    {
+        email: "jane@email.com",
+        password: "Password123",
+        name: "Jane Grok",
+        phone: "0965554211",
+        role: "customer",
+        token: "mock_token_customer_102"
+    },
+    {
+        email: "staff@test.com",
+        password: "StaffPass1",
+        name: "Staff User",
+        phone: "",
+        role: "staff",
+        token: "mock_token_staff_201"
+    },
+    {
+        email: "admin@test.com",
+        password: "AdminPass1",
+        name: "Admin User",
+        phone: "",
+        role: "admin",
+        token: "mock_token_admin_301"
+    }
+  ];
+  const attemptTracker = {};
+
+  // ==========================================
+  // 2. ฟังก์ชัน UI ควบคุมข้อความและการกรอก
+  // ==========================================
+  function fillCreds(email, pw) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = pw;
+  }
+
+  function showError(msg)   { const el = document.getElementById('error-msg');   el.textContent = msg; el.style.display = 'block'; }
+  function showSuccess(msg) { const el = document.getElementById('success-msg'); el.textContent = msg; el.style.display = 'block'; }
+  function hideMessages()   { ['error-msg','success-msg'].forEach(id => { document.getElementById(id).style.display = 'none'; }); }
+
+  // ==========================================
+  // 3. Logic การเข้าสู่ระบบ & Attempt Limitation
+  // ==========================================
+  function handleLogin() {
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    hideMessages();
+
+    if (!email || !password) { showError('Please enter email and password.'); return; }
+
+    // สร้าง Tracker ให้ Email นี้ถ้ายังไม่มี
+    if (!attemptTracker[email]) {
+        attemptTracker[email] = { count: 0, isLocked: false };
+    }
+
+    // [Security] ตรวจสอบว่าโดนล็อคบัญชีอยู่หรือไม่
+    if (attemptTracker[email].isLocked) {
+        showError('Account locked due to 5 failed attempts. Try again in 15 minutes.');
+        return;
+    }
+
+    // ค้นหา User ใน Mock DB
+    const user = mockUsers.find(u => u.email === email);
+
+    // กรณีรหัสผ่านผิด หรือไม่มีผู้ใช้
+    if (!user || user.password !== password) {
+        attemptTracker[email].count += 1;
+
+        if (attemptTracker[email].count >= 5) {
+            attemptTracker[email].isLocked = true;
+            showError('Account locked due to 5 failed attempts. Try again in 15 minutes.');
+        } else {
+            showError(`Invalid credentials. Attempt ${attemptTracker[email].count}/5`);
         }
+        return;
+    }
 
-        loadMockUsers();
+    // กรณีสำเร็จ
+    attemptTracker[email].count = 0;
+    saveSession(user);
 
+    showSuccess(`Welcome, ${user.name}! Redirecting…`);
+    setTimeout(() => redirectByRole(user.role), 600);
+  }
 
-        // ตัวแปรเก็บจำนวนครั้งที่ผิดของแต่ละ Email
-        const attemptTracker = {}; 
+  function redirectByRole(role) {
+    const map = {
+      customer: 'Customer/home.html',
+      staff:    'Staff/home.html',
+      admin:    'Admin/home.html',
+    };
 
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+    window.location.href = map[role] || 'login.html';
+  }
 
-            const errorAlert = document.querySelector('.alert-error');
-            const successAlert = document.querySelector('.alert-success');
-            errorAlert.style.display = 'none';
-            successAlert.style.display = 'none';
-
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            if (!attemptTracker[email]) {
-                attemptTracker[email] = { count: 0, isLocked: false };
-            }
-
-            // check email is locked
-            if (attemptTracker[email].isLocked) {
-                errorAlert.textContent = 'Account locked due to 5 failed attempts. Try again in 15 minutes.';
-                errorAlert.style.display = 'block';
-                return; // หยุดการทำงานทันที
-            }
-
-            // user alredy register
-            const user = mockUsers.find(u => u.email === email);
-
-            // incorrect password
-            if (!user || user.password !== password) {
-                attemptTracker[email].count += 1; // นับเพิ่ม 1 ครั้ง
-
-                // login attempt more thant 5 time
-                if (attemptTracker[email].count >= 5) {
-                    attemptTracker[email].isLocked = true;
-                    errorAlert.textContent = 'Account locked due to 5 failed attempts. Try again in 15 minutes.';
-                } else {
-                    errorAlert.textContent = `Invalid credentials. Attempt ${attemptTracker[email].count}/5`;
-                }
-                errorAlert.style.display = 'block';
-                return;
-            }
-
-            // login success
-            attemptTracker[email].count = 0;
-            successAlert.textContent = `Login Success! Name: ${user.name}, Token: ${user.token}`;
-            successAlert.style.display = 'block';
-        });
-    </script>
+  // Allow Enter key
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+</script>
 </body>
 </html>

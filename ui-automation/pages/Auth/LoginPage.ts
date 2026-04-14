@@ -1,6 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
 import path from 'path';
-import fs from 'fs';
 
 export class LoginPage {
   readonly page: Page;
@@ -12,27 +11,17 @@ export class LoginPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.emailInput = page.locator('#email');
-    this.passwordInput = page.locator('#password');
-    this.loginButton = page.locator('button[type="submit"]');
-    this.errorMessage = page.locator('.alert-error');
-    this.successMessage = page.locator('.alert-success');
+    
+    // เปลี่ยนมาใช้ data-testid เพื่อความเสถียรสูงสุด
+    this.emailInput = page.getByTestId('input-email');
+    this.passwordInput = page.getByTestId('input-password');
+    this.loginButton = page.getByTestId('btn-login');
+    this.errorMessage = page.getByTestId('error-message');
+    this.successMessage = page.getByTestId('success-message');
   }
 
   async goto() {
     const filePath = path.resolve('mocks/login.html');
-    const csvPath = path.resolve('data/users.csv');
-
-    await this.page.route('https://mock-api.com/data/user.csv', route => {
-      const csvContent = fs.readFileSync(csvPath, 'utf-8');
-      
-      route.fulfill({
-        status: 200,
-        contentType: 'text/csv',
-        body: csvContent
-      });
-    });
-
     await this.page.goto(`file://${filePath}`);
   }
 
