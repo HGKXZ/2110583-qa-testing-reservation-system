@@ -60,7 +60,9 @@ project-root
 │
 ├── api-tests/                   # API Testing Source Code
 │
-└── ui-automation/               # UI Automation Testing Source Code
+├── ui-automation/               # UI Automation Testing Source Code
+│
+└── performance-tests/           # Performance Testing Source Code
 ```
 
 ---
