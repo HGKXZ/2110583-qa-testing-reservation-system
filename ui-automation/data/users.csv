@@ -1,0 +1,5 @@
+email,password,name,phone,role,token
+john@email.com,Password123,John Smith,0812345678,customer,mock_token_customer_101
+jane@email.com,Password123,Jane Grok,0965554211,customer,mock_token_customer_102
+staff@test.com,StaffPass1,Staff User,,staff,mock_token_staff_201
+admin@test.com,AdminPass1,Admin User,,admin,mock_token_admin_301

@@ -1,0 +1,94 @@
+{
+  "uuid": "ce92d2a6-4d51-4e07-9e57-69bc43aa0268",
+  "lastMigration": 33,
+  "name": "QA final 5",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 3006,
+  "hostname": "",
+  "folders": [],
+  "routes": [
+    {
+      "uuid": "e8c79b5f-cff1-45c8-9d4d-a38021ae979c",
+      "type": "http",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "tables",
+      "responses": [
+        {
+          "uuid": "d216eab7-e5bd-426d-a712-786d1bd0a0db",
+          "body": "{\n  \"tableId\": 1, \n  \"capacity\": 4, \n  \"status\": \"AVAILABLE\" \n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    }
+  ],
+  "rootChildren": [
+    {
+      "type": "route",
+      "uuid": "e8c79b5f-cff1-45c8-9d4d-a38021ae979c"
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [
+    {
+      "key": "Content-Type",
+      "value": "application/json"
+    },
+    {
+      "key": "Access-Control-Allow-Origin",
+      "value": "*"
+    },
+    {
+      "key": "Access-Control-Allow-Methods",
+      "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"
+    },
+    {
+      "key": "Access-Control-Allow-Headers",
+      "value": "Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With"
+    }
+  ],
+  "proxyReqHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "proxyResHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "data": [],
+  "callbacks": []
+}
