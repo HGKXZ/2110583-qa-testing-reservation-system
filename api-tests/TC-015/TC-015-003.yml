@@ -1,0 +1,26 @@
+info:
+  name: TC-015-003
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/admin/settings"
+  body:
+    type: json
+    data: |-
+      {
+        "operatingHours": {
+            "open": 18,
+            "close": 2
+          }
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

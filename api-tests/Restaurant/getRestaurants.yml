@@ -1,0 +1,37 @@
+info:
+  name: getRestaurants
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/restaurants??type=&keyword=&name=&cuisine=&tag=&minPrice=&maxPrice="
+  params:
+    - name: ?type
+      value: ""
+      type: query
+    - name: keyword
+      value: ""
+      type: query
+    - name: name
+      value: ""
+      type: query
+    - name: cuisine
+      value: ""
+      type: query
+    - name: tag
+      value: ""
+      type: query
+    - name: minPrice
+      value: ""
+      type: query
+    - name: maxPrice
+      value: ""
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

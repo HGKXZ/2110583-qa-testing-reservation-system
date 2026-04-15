@@ -1,0 +1,23 @@
+info:
+  name: TC-015-002
+  type: http
+  seq: 2
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/admin/settings"
+  body:
+    type: json
+    data: |-
+      {
+        "pricePerPerson": 499.50
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

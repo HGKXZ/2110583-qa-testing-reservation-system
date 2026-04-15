@@ -1,0 +1,23 @@
+info:
+  name: TC-015-004
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/tables"
+  body:
+    type: json
+    data: |-
+      {
+        "capacity": 4
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

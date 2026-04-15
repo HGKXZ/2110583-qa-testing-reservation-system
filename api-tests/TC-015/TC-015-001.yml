@@ -1,0 +1,24 @@
+info:
+  name: TC-015-001
+  type: http
+  seq: 1
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/admin/settings"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "New RTS",
+        "tel": "0991234567"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
