@@ -1,0 +1,7 @@
+info:
+  name: TC-006
+  type: folder
+  seq: 11
+
+request:
+  auth: inherit

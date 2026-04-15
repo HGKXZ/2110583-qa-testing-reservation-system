@@ -1,0 +1,44 @@
+info:
+  name: login_as_admin
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "{{adminEmail}}",
+        "password": "{{adminPass}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const data = res.getBody();
+        bru.setEnvVar("token", data.token);
+    - type: tests
+      code: |-
+        test("Response time < 1000ms", () => {
+          expect(res.getResponseTime()).to.be.below(1000);
+        });
+
+        // ตรวจ status code
+        test("Login success", () => {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        // ตรวจ token มีใน response
+        test("Has token", () => {
+          expect(res.getBody().token).to.be.a("string");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

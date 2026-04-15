@@ -1,0 +1,266 @@
+opencollection: 1.0.0
+
+info:
+  name: Restaurant_Reservation
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ""
+      port: ""
+      auth:
+        username: ""
+        password: ""
+      bypassProxy: ""
+
+docs:
+  content: |
+    # Restaurant Reservation API Documentation (Bruno Collection-Based)
+
+    ## Overview
+
+    This documentation is generated directly from the **Bruno API testing collection** for the Restaurant Reservation System.
+
+    It reflects the **actual endpoints, request structures, and flows** used during testing.
+
+    ---
+
+    ## Base Configuration
+
+    ### Base URL
+
+    ```bash
+    {{baseUrl}}
+    ```
+
+    ### Authentication
+
+    Most endpoints use **Bearer Token**
+
+    ```http
+    Authorization: Bearer {{token}}
+    ```
+
+    ---
+
+    ## 🔐 Authentication APIs
+
+    ### Register
+
+    ```http
+    POST /auth/register
+    ```
+
+    **Body**
+
+    ```json
+    {
+      "email": "user@example.com",
+      "password": "123456",
+      "role": "customer"
+    }
+    ```
+
+    ---
+
+    ### Login (Multiple Roles)
+
+    #### Admin Login
+
+    ```http
+    POST /auth/login
+    ```
+
+    #### Customer Login
+
+    ```http
+    POST /auth/login
+    ```
+
+    #### Staff Login
+
+    ```http
+    POST /auth/login
+    ```
+
+    **Body**
+
+    ```json
+    {
+      "email": "user@example.com",
+      "password": "123456"
+    }
+    ```
+
+    ---
+
+    ## 🔑 Password Management
+
+    ### Forgot Password
+
+    ```http
+    POST /password/forgot
+    ```
+
+    ### Reset Password
+
+    ```http
+    POST /password/reset
+    ```
+
+    ---
+
+    ## 🍽️ Restaurant APIs
+
+    ### Get All Restaurants
+
+    ```http
+    GET /restaurants
+    ```
+
+    ---
+
+    ## 🪑 Table APIs
+
+    ### Get Tables
+
+    ```http
+    GET /tables
+    ```
+
+    ### Get Table Reservations
+
+    ```http
+    GET /tables/reservations
+    ```
+
+    ---
+
+    ## 📅 Reservation APIs
+
+    ### Create Reservation
+
+    ```http
+    POST /reservations
+    ```
+
+    **Body**
+
+    ```json
+    {
+      "date": "2026-04-15",
+      "time": "18:00",
+      "guestCount": 4,
+      "specialRequest": "Window seat"
+    }
+    ```
+
+    **Auth Required:** ✅
+
+    **Post-Processing (Bruno Script)**
+
+    * Saves `reservationId` to environment
+
+    ---
+
+    ### Get Reservations
+
+    ```http
+    GET /reservations
+    ```
+
+    ---
+
+    ### Delete Reservation
+
+    ```http
+    DELETE /reservations/{{reservationId}}
+    ```
+
+    ---
+
+    ## 🧪 Test Case Collections
+
+    Your Bruno project includes structured test scenarios:
+
+    ### TC-001 → TC-015
+
+    These represent **test suites**, including:
+
+    * ✅ Positive cases (valid booking)
+    * ❌ Negative cases (invalid input)
+    * ⚠️ Boundary cases (max guests, time limits)
+    * 🔐 Authentication/Authorization checks
+
+    Example:
+
+    * `TC-001-001.yml` → likely basic success case
+    * `BF-*` → Boundary/Failure tests
+    * `AF-*` → After/Advanced flow tests
+
+    ---
+
+    ## 🔁 Environment Variables
+
+    Defined in:
+
+    ```
+    /environments/local.yml
+    ```
+
+    ### Example
+
+    ```bash
+    baseUrl=http://localhost:3000
+    token=your_jwt_token
+    reservationId=auto-set
+    ```
+
+    ---
+
+    ## 🔄 Workflow (Bruno)
+
+    1. Login → get token
+    2. Set `{{token}}`
+    3. Create reservation
+    4. Store `reservationId`
+    5. Fetch reservations
+    6. Delete reservation (cleanup)
+
+    ---
+
+    ## ⚠️ Error Scenarios Covered
+
+    From test cases:
+
+    * Invalid date/time
+    * Exceed guest capacity
+    * Unauthorized access
+    * Missing token
+    * Invalid reservation ID
+    * Duplicate booking conflicts
+
+    ---
+
+    ## 📌 Notes
+
+    * All requests use `{{baseUrl}}` → environment-driven
+    * Reservation ID is dynamically stored via scripts
+    * Test cases are grouped logically for automation
+
+    ---
+
+    ## 📚 References
+
+    * Bruno Collection File: `opencollection.yml`
+    * Environment: `/environments/local.yml`
+
+    ---
+  type: text/markdown
+bundled: false
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git

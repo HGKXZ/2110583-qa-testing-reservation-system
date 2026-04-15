@@ -1,0 +1,24 @@
+info:
+  name: TC-004-S05
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{baseUrl}}/restaurants"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        // ตรวจ status code
+        test("Status 200 OK", () => {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,23 @@
+info:
+  name: TC-008-002
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/reservations/{{reservationId}}"
+  body:
+    type: json
+    data: |
+      {
+        "guestCount": 6
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

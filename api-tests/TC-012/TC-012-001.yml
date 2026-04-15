@@ -1,0 +1,45 @@
+info:
+  name: TC-012-001
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/reservations"
+  body:
+    type: json
+    data: |
+      {
+        "date":" 2026-05-20",
+        "time": "18:00",
+        "guestCount": 2,
+        "specialRequest": "Window seat"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const data = res.getBody();
+        bru.setEnvVar("reservationId", data.reservationId);
+    - type: tests
+      code: |-
+        test("เปลี่ยนสถานะโต๊ะเป็น OCCUPIED สำเร็จ", function() {
+          const data = res.getBody();
+          
+          // ตรวจสอบ Status Code (ควรเป็น 200 OK)
+          expect(res.getStatus()).to.equal(200);
+          
+          // ตรวจสอบค่าที่ส่งกลับมา
+          expect(data.status).to.equal("OCCUPIED");
+          expect(data.tableId).to.be.a('number');
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

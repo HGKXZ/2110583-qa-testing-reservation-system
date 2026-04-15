@@ -1,0 +1,39 @@
+info:
+  name: TC-001-005
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/auth/register"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "John Doe",
+        "email": "test.com",
+        "password": "Pass1234",
+        "phone": "0812345678"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Status code is 409", function() {
+          expect(res.getStatus()).to.equal(409);
+        });
+
+        test("Error message Authentication required", function(){
+          expect(res.getBody.error === "Email already exists");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

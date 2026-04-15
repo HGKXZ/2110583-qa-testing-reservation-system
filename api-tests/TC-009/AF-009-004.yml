@@ -1,0 +1,46 @@
+info:
+  name: AF-009-004
+  type: http
+  seq: 12
+
+http:
+  method: GET
+  url: "{{baseUrl}}/tables/available?date=2026-04-15&time=18:00&guestCount=2"
+  params:
+    - name: date
+      value: 2026-04-15
+      type: query
+    - name: time
+      value: 18:00
+      type: query
+    - name: guestCount
+      value: "2"
+      type: query
+  body:
+    type: json
+    data: ""
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("โต๊ะที่จองไปแล้วต้องปรากฏ", function() {
+          
+          const data = res.getBody();
+          // ดึงค่า ID ที่จองไว้ และจำนวนตั้งต้นมาจากตัวแปรของ Bruno
+          const bookedId = parseInt(bru.getVar("bookedTableId"));
+          const initialCount = parseInt(bru.getVar("initialCount"));
+
+          const isTableGone = !data.tables.some(t => t.tableId === bookedId);
+          expect(isTableGone).to.be.true;
+          expect(data.availableCount).to.equal(initialCount);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
