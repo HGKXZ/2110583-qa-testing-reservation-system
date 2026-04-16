@@ -1,0 +1,113 @@
+Test Case ID,FR,Description,Pre-conditions,Test Steps,Input Data,Expected Result,Pass/Fail Criteria,Post-conditions,Priority of Test Case
+TC-SEC-001,FR-SEC Security,Verify password rejected at just below minimum boundary (7 chars),User is on Registration page,"1. Enter valid Name, Email, and Phone
+2. Enter 7-character Password
+3. Click ""Register""","Name: John
+Email: sec01@test.com
+Password: Valid12","System displays HTTP 400 with error: ""Invalid password policy""","Pass: Registration rejected
+Fail: Account created",No user created,High
+TC-SEC-002,FR-SEC Security,Verify password accepted at exact minimum boundary (8 chars),User is on Registration page,"1. Enter valid Name, Email, Phone
+2. Enter 8-char Password (with 1 Uppercase & 1 Number)
+3. Click ""Register""","Name: John
+Email: sec01@test.com
+Password: Valid123",System returns HTTP 201/200 Registration successful,"Pass: Account created successfully
+Fail: Registration rejected",User record created in DB,High
+TC-SEC-003,FR-SEC Security,Verify password accepted at exact maximum boundary (20 chars),User is on Registration page,"1. Enter valid Name, Email, Phone
+2. Enter 20-char Password (with 1 Uppercase & 1 Number)
+3. Click ""Register""","Name: John
+Email: sec01@test.com
+Password: Valid12345678901234",System returns HTTP 201/200 Registration successful,"Pass: Account created successfully
+Fail: Registration rejected",User record created in DB,Medium
+TC-SEC-004,FR-SEC Security,Verify password rejected at just above maximum boundary (21 chars),User is on Registration page,"1. Enter valid Name, Email, Phone
+2. Enter 21-char Password (with 1 Uppercase & 1 Number)
+3. Click ""Register""","Name: John
+Email: sec01@test.com
+Password: Valid123456789012345","System displays HTTP 400 with error: ""Invalid password policy""","Pass: Registration rejected
+Fail: Account created",No user created,Medium
+TC-SEC-005,FR-SEC Security,Verify password rejected when missing complexity criteria (within valid length),User is on Registration page,"1. Enter password missing uppercase (10 chars)
+2. Click Register
+3. Enter password missing number (10 chars)
+4. Click Register","Name: John
+Email: sec01@test.com
+
+Pass 1: validpass1 (No Uppercase)
+Pass 2: Validpassw (No Number)","System displays HTTP 400 with error: ""Invalid password policy""","Pass: Registration rejected
+Fail: Account created",No user created,High
+TC-SEC-006,FR-SEC Security,Verify account is locked after 5 consecutive failed login attempts,"Valid account with ""lock@test.com"" exists","1. Enter valid Email
+2. Enter incorrect Password 5 times
+3. Enter correct Password on the 6th attempt","Email: lock@test.com
+Pass 1-5: WrongPass
+Pass 6: CorrectPass123","System displays ""Account locked"" on the 5th attempt and rejects the 6th attempt even with correct password","Pass: Account locked
+Fail: Login proceeds or continues to allow attempts","User status updated to ""locked"" in DB",High
+TC-SEC-007,FR-SEC Security,Verify API rejects requests with an expired JWT Token,User has an expired JWT token (older than 1 week),"1. Send GET request to /reservations/{id}
+2. Include expired token in Authorization header",Header: Authorization: Bearer <expired_token>,System returns HTTP 401 Authentication required,"Pass: Request rejected (401)
+Fail: Data returned (200)",No data modified or exposed,High
+TC-SEC-008,FR-SEC Security,Verify SQL Injection is prevented on the Login page,User is on Login page,"1. Enter SQL injection payload in Email field
+2. Enter any Password
+3. Click ""Login""","Email: ' OR 1=1 --
+Password: AnyPass",System returns HTTP 400 Invalid input data or 401 Authentication required,"Pass: Login rejected
+Fail: System grants access",None,High
+TC-SEC-009,FR-SEC Security,Verify system prevents XSS injection in Special Request field,User is logged in and has valid token,"1. Send POST request to /reservations
+2. Fill reservation details
+3. Enter XSS script in Special Request",specialRequest: <script>alert('xss')</script>,System returns 400 Invalid input data OR sanitizes/encodes the script,"Pass: Input rejected or sanitized
+Fail: Script saved as raw text and executed",DB contains no script or safe encoded text,High
+TC-SEC-010,FR-SEC Security,Verify API Rate Limit prevents DoS/Spam bookings,"Automation tool (e.g., JMeter) is set up. User has a valid token",1. Execute script to send 100 POST requests to create reservations within 1 second using the same token,100 identical POST requests to /reservations in 1 sec,"System processes initial requests within limit, then drops the rest and returns HTTP 429 Too Many Requests","Pass: Rate limit triggers (429 returned)
+Fail: Server crashes or processes all 100 requests",Only the allowed limit of reservations are created in DB,High
+TC-SEC-011,FR-SEC Security,Verify API rejects requests missing the Authorization header,API /reservations is functioning,"1. Send POST request to /reservations
+2. Do not include Authorization header","Valid reservation JSON body
+No Header",System returns HTTP 401 Authentication required,"Pass: Request rejected (401)
+Fail: Request processed",No reservation created in DB,High
+TC-SEC-012,FR-SEC Security,Verify UI Middleware: Customer cannot access Admin/Staff pages,Customer is logged in,"1. Navigate directly to Admin URL via browser address bar
+2. Navigate directly to Staff URL","URL 1: /admin
+URL 2: /staff",System redirects the user to home/unauthorized page or displays 403 Forbidden,"Pass: Access denied and redirected
+Fail: Admin/Staff page loads",None,High
+TC-SEC-013,FR-SEC Security,Verify UI Middleware: Staff cannot access Admin pages,Staff is logged in,1. Navigate directly to Admin URL via browser address bar,URL: /admin,System redirects the user to home/unauthorized page or displays 403 Forbidden,"Pass: Access denied and redirected
+Fail: Admin page loads",None,High
+TC-SEC-014,FR-SEC Security,Verify API RBAC: Customer token cannot access Staff/Admin APIs,Customer has a valid JWT token,"1. Send GET request to Admin API
+2. Send GET request to Staff API with Customer token","1. GET /admin/reservations
+2. GET /tables
+Header: Bearer <Customer_Token>",System returns HTTP 403 Forbidden ,"Pass: Request rejected (403)
+Fail: Data returned (200)",None,High
+TC-SEC-015,FR-SEC Security,Verify API RBAC: Staff token cannot access Admin/Customer APIs,Staff has a valid JWT token,"1. Send GET request to Admin API
+2. Send POST request to Customer API with Staff token","1. GET /admin/reservations
+2. POST /reservations
+Header: Bearer <Staff_Token>",System returns HTTP 403 Forbidden ,"Pass: Request rejected (403)
+Fail: Data returned (200)",None,High
+TC-SEC-016,FR-SEC Security,Verify API RBAC: Admin token cannot access Staff/Customer APIs,Admin has a valid JWT token,"1. Send POST request to Customer API
+2. Send API to manage walk-ins (Staff only) with Admin token","1. POST /reservations
+Header: Bearer <Admin_Token>",System returns HTTP 403 Forbidden ,"Pass: Request rejected (403)
+Fail: Data returned (200)",None,High
+TC-SEC-017,FR-SEC Security,Verify that user passwords are securely hashed in the database (No Plain Text),Tester has direct access to view the Database records,"1. Send POST request to /auth/register to create a new user
+2. Open Database client (e.g., DBeaver, pgAdmin)
+3. Query the users table for the newly registered email
+4. Inspect the password column","Name: Jane Doe
+Email: hash@test.com
+Password: SecurePass123","The password field in the database contains a hashed string (e.g., starting with $2b$ for bcrypt or $argon2id$) and NOT the plain text SecurePass123.","Pass: Password is hashed and unreadable
+Fail: Password is saved in plain text",User record exists with hashed password,High
+TC-SEC-018,FR-SEC Security,Verify DTO: Login API response payload does not expose the user's password,API /auth/login is functioning,"1. Send POST request to /auth/login with valid credentials
+2. Intercept and inspect the JSON response body from the server","Email: valid@test.com
+Password: ValidPass123","The response body only contains authorized fields (e.g., token, role, userId). The password or hash field MUST NOT exist in the JSON.","Pass: Sensitive fields are excluded
+Fail: Response leaks password or hash",None,High
+TC-SEC-019,FR-SEC Security,Verify DTO: Registration API response does not expose sensitive data,API /auth/register is functioning,"1. Send POST request to /auth/register with valid new user data
+2. Intercept and inspect the JSON response body","Name: Test DTO
+Email: dto@test.com
+Password: DtoPass123","The response body only returns success message and non-sensitive data (e.g., userId, message). The password field is excluded.","Pass: Sensitive fields are excluded
+Fail: Response leaks password or hash",User created in DB,High
+TC-SEC-020,FR-SEC Security,Verify DTO: Data retrieval APIs do not leak password hashes via joined tables,User has reservations. API /admin/reservations is functioning,"1. Authenticate as Admin to get Token
+2. Send GET request to /admin/reservations
+3. Inspect the JSON array containing customer data","Endpoint: GET /admin/reservations
+API: Bearer <Admin_Token>","The response returns reservation data (e.g., reservationId, customerName). Joined user object data strictly excludes the password field.","Pass: No passwords/hashes leaked in data arrays
+Fail: System dumps full user schema including hashes",None,High
+TC-SEC-021,FR-SEC Security,Verify Customer A cannot view Customer B's reservation details via API ,"1. Customer A has valid Token A
+2. Customer B has valid Reservation ID: 5005","1. Send GET request to view reservation details
+2. Use Customer B's reservation ID but authenticate with Customer A's token","API: GET /reservations/5005
+Header: Authorization: Bearer <Customer_A_Token>",System returns HTTP 404 Not Found. Information is not disclosed.,"Pass: Data is protected (404)
+Fail: Returns Customer B's data (HTTP 200)",None,High
+TC-SEC-022,FR-SEC Security,Verify Customer A cannot modify Customer B's reservation via API,"1. Customer A has valid Token A
+2. Customer B has valid Reservation ID: 5005","1. Send PUT/PATCH request to modify reservation details (e.g., change guest count)
+2. Use Customer B's reservation ID but authenticate with Customer A's token","API: PUT /reservations/5005
+Body: {""guestCount"": 8}
+Header: Bearer <Customer_A_Token>",System returns HTTP 404 Not Found. Update is rejected.,"Pass: Request rejected
+Fail: Reservation successfully updated (HTTP 200/204)",Customer B's reservation remains unchanged in DB,High
+TC-SEC-023,FR-SEC Security,Verify Customer A cannot access Customer B's reservation page via URL tampering,"1. Customer A has valid Token A
+2. Customer B has valid Reservation ID: 5005","1. Customer A navigates directly to the reservation details URL in the browser, changing the ID to Customer B's ID",URL in browser: https://restaurant.com/reservations/view/5005,"System prevents access, displays ""404 Not Found"" page.","Pass: Access denied or redirected gracefully
+Fail: Web page loads Customer B's reservation details",None,High

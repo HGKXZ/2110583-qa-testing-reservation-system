@@ -1,0 +1,16 @@
+// Vulnerability Prevention
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  // Topic: 6. Sensitive Data Protection
+  // Test Cases: TC-SEC-017
+  // Purpose: To store passwords securely as a bcrypt hash, not plain text.
+  passwordHash        String    
+
+  // Topic: 2. Login Attempt Limitation
+  // Test Cases: TC-SEC-006
+  // Purpose: To track failed logins and lock accounts to prevent brute-force attacks.
+  failedLoginAttempts Int       @default(0)
+  isLocked            Boolean   @default(false)
+  lockedUntil         DateTime?
+}
