@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TableReserve — Customer</title>
+<link rel="stylesheet" href="../shared.css">
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">Table<span>Reserve</span></div>
+    </div>
+    <div class="nav" id="nav-area"></div>
+    <div style="padding:12px 8px;border-top:0.5px solid var(--color-border-tertiary)">
+      <button class="nav-item" data-testid="btn-logout" onclick="logout()" style="color:#A32D2D">⎋ Logout</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="page-title">Dashboard</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">Restaurant Table Reservation System</div>
+      </div>
+      <div class="user-chip">
+        <div id="user-info" style="text-align:right"></div>
+        <div class="avatar" id="user-avatar">--</div>
+      </div>
+    </div>
+    <div class="content" id="content-area"></div>
+  </div>
+</div>
+
+<script src="../middleware.js"></script>
+<script>
+/* ── Guard: customer role required ── */
+const session = requireRole('customer');
+if (!session) throw new Error('Access denied'); // renderAccessDenied already called
+
+/* ── Nav definition ── */
+const NAV = [
+  {id:'dash',         label:'Dashboard',         icon:'▦'},
+  {id:'availability', label:'Check Availability', icon:'◎'},
+  {id:'make',         label:'Make Reservation',   icon:'+'},
+  {id:'my',           label:'My Reservations',    icon:'≡'},
+];
+
+/* ── Screen content ── */
+const SCREENS = {
+  dash: () => `
+    <div class="story-bar">
+      <span style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">User story:</span>
+      <div class="story-pill active">US-01 View Dashboard</div>
+      <div class="story-pill" onclick="goScreen('availability',SCREENS)">US-02 Check Availability ↗</div>
+      <div class="story-pill" onclick="goScreen('make',SCREENS)">US-03 Make Reservation ↗</div>
+    </div>
+    <div class="step-flow">
+      <div class="step done">Login</div><span class="step-arrow">→</span>
+      <div class="step active">Dashboard</div><span class="step-arrow">→</span>
+      <div class="step pending">Check availability</div><span class="step-arrow">→</span>
+      <div class="step pending">Reserve</div><span class="step-arrow">→</span>
+      <div class="step pending">Confirmed</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">My reservations</div><div class="stat-val">3</div></div>
+      <div class="stat"><div class="stat-label">Upcoming</div><div class="stat-val">1</div></div>
+      <div class="stat"><div class="stat-label">Cancelled</div><div class="stat-val">1</div></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Upcoming reservation</div>
+      <table class="table-list">
+        <thead><tr><th>Date</th><th>Time</th><th>Guests</th><th>Table</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>2026-05-20</td><td>18:00</td><td>4</td><td>T-03 (6 pax)</td><td><span class="badge badge-green">CONFIRMED</span></td></tr>
+          <tr><td>2026-04-10</td><td>19:00</td><td>2</td><td>T-01 (2 pax)</td><td><span class="badge badge-amber">PENDING</span></td></tr>
+          <tr><td>2026-03-15</td><td>12:00</td><td>6</td><td>T-05 (8 pax)</td><td><span class="badge badge-red">CANCELLED</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="goScreen('availability',SCREENS)">Check Availability ↗</button>
+      <button class="btn" onclick="goScreen('my',SCREENS)">View All Reservations</button>
+    </div>`,
+
+  availability: () => `
+    <div class="story-bar">
+      <div class="story-pill" onclick="goScreen('dash',SCREENS)">US-01 Dashboard</div>
+      <div class="story-pill active">US-02 Check Availability</div>
+      <div class="story-pill" onclick="goScreen('make',SCREENS)">US-03 Make Reservation ↗</div>
+    </div>
+    <div class="step-flow">
+      <div class="step done">Login</div><span class="step-arrow">→</span>
+      <div class="step done">Dashboard</div><span class="step-arrow">→</span>
+      <div class="step active">Check availability</div><span class="step-arrow">→</span>
+      <div class="step pending">Reserve</div><span class="step-arrow">→</span>
+      <div class="step pending">Confirmed</div>
+    </div>
+    <div class="card">
+      <div class="section-title">FR-03 — Search availability</div>
+      <div class="form-row">
+        <div class="form-group"><label>Date</label><input type="date" value="2026-05-20" data-testid="input-date"></div>
+        <div class="form-group"><label>Time</label><input type="time" value="18:00" data-testid="input-time"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Number of guests</label><input type="number" min="1" max="10" value="4" data-testid="input-guests"></div>
+        <div class="form-group" style="justify-content:flex-end"><button class="btn btn-primary" data-testid="btn-search" onclick="showTables()">Search →</button></div>
+      </div>
+    </div>
+    <div id="avail-result"></div>`,
+
+  make: () => `
+    <div class="story-bar">
+      <div class="story-pill" onclick="goScreen('availability',SCREENS)">US-02 Check Availability</div>
+      <div class="story-pill active">US-03 Make Reservation</div>
+      <div class="story-pill" onclick="goScreen('confirm',SCREENS)">US-04 Confirmation ↗</div>
+    </div>
+    <div class="step-flow">
+      <div class="step done">Login</div><span class="step-arrow">→</span>
+      <div class="step done">Dashboard</div><span class="step-arrow">→</span>
+      <div class="step done">Check availability</div><span class="step-arrow">→</span>
+      <div class="step active">Reserve</div><span class="step-arrow">→</span>
+      <div class="step pending">Confirmed</div>
+    </div>
+    <div class="card">
+      <div class="section-title">FR-04 — Reservation details</div>
+      <div class="form-row">
+        <div class="form-group"><label>Date (future only)</label><input type="date" value="2026-05-20" data-testid="input-date"></div>
+        <div class="form-group"><label>Time (within operating hours)</label><input type="time" value="18:00" data-testid="input-time"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Number of guests (1–10)</label><input type="number" min="1" max="10" value="4" data-testid="input-guests"></div>
+        <div class="form-group"><label>Table</label><select data-testid="select-table"><option>T-03 — 6 pax (available)</option><option>T-02 — 4 pax (available)</option></select></div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px"><label>Special request (optional, max 200 chars)</label><textarea data-testid="input-special" placeholder="e.g. window seat, birthday cake..."></textarea></div>
+      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 14px;font-size:12px;color:var(--color-text-secondary);margin-bottom:14px">
+        <strong style="color:var(--color-text-primary)">Validation rules (FR-04):</strong> future date only · within operating hours · guest count ≤ table capacity · table must be available
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" data-testid="btn-confirm-reservation" onclick="goScreen('confirm',SCREENS)">Confirm Reservation ↗</button>
+        <button class="btn">Cancel</button>
+      </div>
+    </div>`,
+
+  confirm: () => `
+    <div class="story-bar">
+      <div class="story-pill active">US-04 Confirmation</div>
+      <div class="story-pill" onclick="goScreen('my',SCREENS)">US-05 View My Reservations ↗</div>
+    </div>
+    <div class="step-flow">
+      <div class="step done">Login</div><span class="step-arrow">→</span>
+      <div class="step done">Dashboard</div><span class="step-arrow">→</span>
+      <div class="step done">Check availability</div><span class="step-arrow">→</span>
+      <div class="step done">Reserve</div><span class="step-arrow">→</span>
+      <div class="step active">Confirmed</div>
+    </div>
+    <div class="confirm-card" style="margin-bottom:14px" data-testid="confirmation-card">
+      <div style="font-size:28px;margin-bottom:8px">✓</div>
+      <div class="confirm-id" data-testid="reservation-id">#RES-5001</div>
+      <div class="confirm-sub">Reservation confirmed</div>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left;font-size:12px;color:#0F6E56">
+        <div><strong>Date:</strong> 2026-05-20</div>
+        <div><strong>Time:</strong> 18:00</div>
+        <div><strong>Guests:</strong> 4</div>
+        <div><strong>Table:</strong> T-03 (6 pax)</div>
+        <div><strong>Status:</strong> CONFIRMED</div>
+        <div><strong>Request:</strong> Window seat</div>
+      </div>
+    </div>
+    <div class="highlight-box">FR-05: Confirmation displayed immediately. Reservation stored in database. Staff dashboard notified (FR-08).</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="goScreen('my',SCREENS)">View My Reservations ↗</button>
+      <button class="btn" onclick="goScreen('dash',SCREENS)">Back to Dashboard</button>
+    </div>`,
+
+  my: () => `
+    <div class="story-bar">
+      <div class="story-pill active">US-05 My Reservations</div>
+      <div class="story-pill" onclick="goScreen('modify',SCREENS)">US-06 Modify ↗</div>
+      <div class="story-pill" onclick="goScreen('cancel',SCREENS)">US-07 Cancel ↗</div>
+    </div>
+    <div class="card" data-testid="my-reservations-table">
+      <table class="table-list">
+        <thead><tr><th>ID</th><th>Date</th><th>Time</th><th>Guests</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>#5001</td><td>2026-05-20</td><td>18:00</td><td>4</td>
+            <td><span class="badge badge-green">CONFIRMED</span></td>
+            <td style="display:flex;gap:6px;padding-top:5px">
+              <button class="btn" style="padding:3px 10px;font-size:11px" data-testid="btn-modify-5001" onclick="goScreen('modify',SCREENS)">Modify</button>
+              <button class="btn btn-danger" style="padding:3px 10px;font-size:11px" data-testid="btn-cancel-5001" onclick="goScreen('cancel',SCREENS)">Cancel</button>
+            </td>
+          </tr>
+          <tr>
+            <td>#4988</td><td>2026-04-10</td><td>19:00</td><td>2</td>
+            <td><span class="badge badge-amber">PENDING</span></td>
+            <td style="display:flex;gap:6px;padding-top:5px">
+              <button class="btn" style="padding:3px 10px;font-size:11px" data-testid="btn-modify-4988" onclick="goScreen('modify',SCREENS)">Modify</button>
+              <button class="btn btn-danger" style="padding:3px 10px;font-size:11px" data-testid="btn-cancel-4988" onclick="goScreen('cancel',SCREENS)">Cancel</button>
+            </td>
+          </tr>
+          <tr>
+            <td>#4812</td><td>2026-03-15</td><td>12:00</td><td>6</td>
+            <td><span class="badge badge-red">CANCELLED</span></td>
+            <td><span style="font-size:11px;color:var(--color-text-tertiary)">—</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`,
+
+  modify: () => `
+    <div class="story-bar">
+      <div class="story-pill" onclick="goScreen('my',SCREENS)">← My Reservations</div>
+      <div class="story-pill active">US-06 Modify Reservation</div>
+    </div>
+    <div class="highlight-box">FR-06: Modification allowed only before reservation time.</div>
+    <div class="card">
+      <div class="section-title">Modifying reservation #5001</div>
+      <div class="form-row">
+        <div class="form-group"><label>Date</label><input type="date" value="2026-05-20" data-testid="input-date"></div>
+        <div class="form-group"><label>Time</label><input type="time" value="18:00" data-testid="input-time"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Number of guests</label><input type="number" value="4" min="1" max="10" data-testid="input-guests"></div>
+        <div class="form-group"><label>Table</label><select data-testid="select-table"><option>T-03 — 6 pax</option><option>T-02 — 4 pax</option></select></div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px"><label>Special request</label><textarea data-testid="input-special">Window seat</textarea></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" data-testid="btn-save-changes" onclick="goScreen('my',SCREENS)">Save Changes ↗</button>
+        <button class="btn" onclick="goScreen('my',SCREENS)">Discard</button>
+      </div>
+    </div>`,
+
+  cancel: () => `
+    <div class="story-bar">
+      <div class="story-pill" onclick="goScreen('my',SCREENS)">← My Reservations</div>
+      <div class="story-pill active">US-07 Cancel Reservation</div>
+    </div>
+    <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:20px;text-align:center;margin-bottom:14px" data-testid="cancel-dialog">
+      <div style="font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px">Cancel reservation #5001?</div>
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">2026-05-20 at 18:00 · 4 guests · Table T-03</div>
+      <div style="font-size:12px;color:#A32D2D;background:#FCEBEB;border-radius:var(--border-radius-md);padding:6px 12px;display:inline-block;margin:10px 0">FR-07: Must be at least 1 hour before reservation time</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+        <button class="btn btn-danger" data-testid="btn-confirm-cancel" onclick="goScreen('my',SCREENS)">Confirm Cancellation</button>
+        <button class="btn" data-testid="btn-keep-reservation" onclick="goScreen('my',SCREENS)">Keep Reservation</button>
+      </div>
+    </div>
+    <div class="highlight-box">After cancellation: table availability updates automatically (FR-07). Staff notified via dashboard (FR-08).</div>`,
+};
+
+/* ── Page titles ── */
+window.__titles = {
+  dash:'Dashboard', availability:'Check Availability', make:'Make Reservation',
+  confirm:'Booking Confirmed', my:'My Reservations', modify:'Modify Reservation', cancel:'Cancel Reservation',
+};
+window.__screens = SCREENS;
+
+/* ── Boot ── */
+renderShell(session, NAV, 'dash', SCREENS);
+</script>
+</body>
+</html>

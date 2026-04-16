@@ -1,0 +1,40 @@
+info:
+  name: TC-003-006
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{baseUrl}}/auth/reset-password"
+  body:
+    type: json
+    data: |-
+      {  
+        "token" : "{{token}}",
+        "newPassword" : "AAAAAAAAAAAA1",
+        "confirmPassword" : "AAAAAAAAAAAA1"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const data = res.getBody();
+        if (data.resetToken){
+          bru.setEnvVar("token", data.resetToken);
+        }
+    - type: tests
+      code: |-
+        // ตรวจ status code
+        test("Status 200 OK", () => {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

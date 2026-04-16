@@ -1,0 +1,22 @@
+{
+<<<<<<< HEAD
+  "name": "coding",
+=======
+  "name": "ui-automation",
+>>>>>>> f435ce96994276b3b4542d8c0ca97a570aa3f0dc
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.0"
+  },
+  "dependencies": {
+    "csv-parse": "^6.2.1"
+  }
+}

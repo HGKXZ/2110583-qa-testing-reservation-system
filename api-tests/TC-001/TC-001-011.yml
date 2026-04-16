@@ -1,0 +1,36 @@
+info:
+  name: TC-001-011
+  type: http
+  seq: 11
+
+http:
+  method: POST
+  url: "{{baseUrl}}/auth/register"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |+
+      {
+        "name": "John Doe",
+        "email": "tc001011@test.com",
+        "password": "Pass1234",
+        "phone": "081234567890123"
+      }
+
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("status 201 Created", () => {
+          expect(res.getStatus()).to.equal(201);
+        })
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

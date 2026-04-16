@@ -1,0 +1,7 @@
+info:
+  name: TC-009
+  type: folder
+  seq: 13
+
+request:
+  auth: inherit

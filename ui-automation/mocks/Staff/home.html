@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TableReserve — Staff</title>
+<link rel="stylesheet" href="../shared.css">
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">Table<span>Reserve</span></div>
+    </div>
+    <div class="nav" id="nav-area"></div>
+    <div style="padding:12px 8px;border-top:0.5px solid var(--color-border-tertiary)">
+      <button class="nav-item" data-testid="btn-logout" onclick="logout()" style="color:#A32D2D">⎋ Logout</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="page-title">Staff Dashboard</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">Restaurant Table Reservation System</div>
+      </div>
+      <div class="user-chip">
+        <div id="user-info" style="text-align:right"></div>
+        <div class="avatar" id="user-avatar">--</div>
+      </div>
+    </div>
+    <div class="content" id="content-area"></div>
+  </div>
+</div>
+
+<script src="../middleware.js"></script>
+<script>
+/* ── Guard: staff role required (staff + admin allowed) ── */
+const session = requireRole('staff');
+if (!session) throw new Error('Access denied');
+
+/* ── Nav definition ── */
+const NAV = [
+  {id:'staff-dash',   label:'Dashboard',       icon:'▦'},
+  {id:'reservations', label:'All Reservations', icon:'≡'},
+  {id:'walkin',       label:'Walk-in Booking',  icon:'+'},
+  {id:'tables',       label:'Table Status',     icon:'⊞'},
+];
+
+/* ── Screen content ── */
+const SCREENS = {
+  'staff-dash': () => `
+    <div class="story-bar">
+      <span style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">User story:</span>
+      <div class="story-pill active">US-08 Staff Dashboard</div>
+      <div class="story-pill" onclick="goScreen('walkin',SCREENS)">US-09 Walk-in Booking ↗</div>
+      <div class="story-pill" onclick="goScreen('tables',SCREENS)">US-10 Table Status ↗</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Today's reservations</div><div class="stat-val">12</div></div>
+      <div class="stat"><div class="stat-label">Tables occupied</div><div class="stat-val">5</div></div>
+      <div class="stat"><div class="stat-label">Tables available</div><div class="stat-val">7</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="section-title">Notifications (FR-08)</div>
+        <div class="notif-item"><div class="notif-dot" style="background:#1D9E75"></div><div><div class="notif-text">New reservation #5001 created</div><div class="notif-time">2 min ago</div></div></div>
+        <div class="notif-item"><div class="notif-dot" style="background:#BA7517"></div><div><div class="notif-text">Reservation #4900 modified</div><div class="notif-time">15 min ago</div></div></div>
+        <div class="notif-item" style="border:none"><div class="notif-dot" style="background:#E24B4A"></div><div><div class="notif-text">Reservation #4812 cancelled</div><div class="notif-time">1 hr ago</div></div></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Quick actions</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn" data-testid="btn-walkin" onclick="goScreen('walkin',SCREENS)" style="text-align:left">+ Add walk-in reservation ↗</button>
+          <button class="btn" data-testid="btn-tables" onclick="goScreen('tables',SCREENS)" style="text-align:left">⊞ Update table status ↗</button>
+          <button class="btn" data-testid="btn-reservations" onclick="goScreen('reservations',SCREENS)" style="text-align:left">≡ View all reservations ↗</button>
+        </div>
+      </div>
+    </div>`,
+
+  reservations: () => `
+    <div class="story-bar">
+      <div class="story-pill active">US-08 All Reservations (Staff — GET /staff/reservations)</div>
+    </div>
+    <div class="card" data-testid="staff-reservations-table">
+      <table class="table-list">
+        <thead><tr><th>ID</th><th>Customer</th><th>Date</th><th>Time</th><th>Guests</th><th>Table</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>#5001</td><td>John Smith</td><td>2026-05-20</td><td>18:00</td><td>4</td><td>T-03</td><td><span class="badge badge-green">CONFIRMED</span></td></tr>
+          <tr><td>#5000</td><td>Amy Park</td><td>2026-05-20</td><td>19:00</td><td>2</td><td>T-01</td><td><span class="badge badge-green">CONFIRMED</span></td></tr>
+          <tr><td>#4999</td><td>Walk-in</td><td>2026-05-20</td><td>12:30</td><td>3</td><td>T-02</td><td><span class="badge badge-blue">WALK-IN</span></td></tr>
+          <tr><td>#4988</td><td>John Smith</td><td>2026-04-10</td><td>19:00</td><td>2</td><td>T-01</td><td><span class="badge badge-amber">PENDING</span></td></tr>
+          <tr><td>#4812</td><td>Ken Ito</td><td>2026-03-15</td><td>12:00</td><td>6</td><td>T-05</td><td><span class="badge badge-red">CANCELLED</span></td></tr>
+        </tbody>
+      </table>
+    </div>`,
+
+  walkin: () => `
+    <div class="story-bar">
+      <div class="story-pill" onclick="goScreen('staff-dash',SCREENS)">← Dashboard</div>
+      <div class="story-pill active">US-09 Walk-in Reservation (FR-11)</div>
+    </div>
+    <div class="highlight-box">FR-11: Staff can create reservations for walk-in customers without prior account registration.</div>
+    <div class="card">
+      <div class="section-title">Walk-in booking</div>
+      <div class="form-row">
+        <div class="form-group"><label>Customer name</label><input type="text" data-testid="input-walkin-name" placeholder="Walk-in customer name"></div>
+        <div class="form-group"><label>Phone (optional)</label><input type="text" data-testid="input-walkin-phone" placeholder="0812345678"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Date</label><input type="date" value="2026-05-20" data-testid="input-walkin-date"></div>
+        <div class="form-group"><label>Time</label><input type="time" value="12:30" data-testid="input-walkin-time"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Number of guests</label><input type="number" min="1" max="10" value="3" data-testid="input-walkin-guests"></div>
+        <div class="form-group"><label>Table</label><select data-testid="select-walkin-table"><option>T-02 — 4 pax (available)</option><option>T-04 — 4 pax (available)</option></select></div>
+      </div>
+      <button class="btn btn-primary" data-testid="btn-create-walkin">Create Walk-in Reservation →</button>
+    </div>`,
+
+  tables: () => `
+    <div class="story-bar">
+      <div class="story-pill" onclick="goScreen('staff-dash',SCREENS)">← Dashboard</div>
+      <div class="story-pill active">US-10 Table Status (FR-09)</div>
+    </div>
+    <div class="card" data-testid="table-status-card">
+      <div class="section-title">FR-09 — Update table status</div>
+      <table class="table-list">
+        <thead><tr><th>Table</th><th>Capacity</th><th>Current Status</th><th>Update</th></tr></thead>
+        <tbody>
+          <tr><td>T-01</td><td>2 pax</td><td><span class="badge badge-green">Available</span></td><td><select data-testid="select-status-T01" style="font-size:11px;padding:3px 6px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary)"><option>Available</option><option>Occupied</option><option>Out of Service</option></select></td></tr>
+          <tr><td>T-02</td><td>4 pax</td><td><span class="badge badge-red">Occupied</span></td><td><select data-testid="select-status-T02" style="font-size:11px;padding:3px 6px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary)"><option>Available</option><option selected>Occupied</option><option>Out of Service</option></select></td></tr>
+          <tr><td>T-03</td><td>6 pax</td><td><span class="badge badge-green">Available</span></td><td><select data-testid="select-status-T03" style="font-size:11px;padding:3px 6px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary)"><option>Available</option><option>Occupied</option><option>Out of Service</option></select></td></tr>
+          <tr><td>T-04</td><td>4 pax</td><td><span class="badge badge-amber">Out of Service</span></td><td><select data-testid="select-status-T04" style="font-size:11px;padding:3px 6px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary)"><option>Available</option><option>Occupied</option><option selected>Out of Service</option></select></td></tr>
+          <tr><td>T-05</td><td>8 pax</td><td><span class="badge badge-green">Available</span></td><td><select data-testid="select-status-T05" style="font-size:11px;padding:3px 6px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary)"><option>Available</option><option>Occupied</option><option>Out of Service</option></select></td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px"><button class="btn btn-primary" data-testid="btn-save-status">Save Status Changes →</button></div>
+    </div>`,
+};
+
+/* ── Page titles ── */
+window.__titles = {
+  'staff-dash':'Staff Dashboard', reservations:'All Reservations',
+  walkin:'Walk-in Booking', tables:'Table Status',
+};
+window.__screens = SCREENS;
+
+/* ── Boot ── */
+renderShell(session, NAV, 'staff-dash', SCREENS);
+</script>
+</body>
+</html>

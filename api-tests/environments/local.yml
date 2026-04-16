@@ -1,0 +1,20 @@
+name: local
+variables:
+  - name: baseUrl
+    value: http://localhost:3000/v1
+  - name: customerEmail
+    value: tc001001@test.com
+  - secret: true
+    name: customerPass
+  - name: adminEmail
+    value: admin@email.com
+  - secret: true
+    name: adminPass
+  - name: staffEmail
+    value: staff@email.com
+  - secret: true
+    name: staffPass
+  - secret: true
+    name: token
+  - name: reservationId
+    value: ""

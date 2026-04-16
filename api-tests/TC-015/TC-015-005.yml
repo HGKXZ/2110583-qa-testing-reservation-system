@@ -1,0 +1,23 @@
+info:
+  name: TC-015-005
+  type: http
+  seq: 5
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/admin/settings"
+  body:
+    type: json
+    data: |-
+      {
+        "tableCount": -5
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

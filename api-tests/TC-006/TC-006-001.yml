@@ -1,0 +1,33 @@
+info:
+  name: TC-006-001
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/reservations"
+  body:
+    type: json
+    data: |
+      {
+        "date":" 2026-05-20",
+        "time": "18:00",
+        "guestCount": 4,
+        "specialRequest": "Window seat"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const data = res.getBody();
+        bru.setEnvVar("reservationId", data.reservationId);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

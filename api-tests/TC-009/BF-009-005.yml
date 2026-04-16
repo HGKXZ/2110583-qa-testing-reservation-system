@@ -1,0 +1,43 @@
+info:
+  name: BF-009-005
+  type: http
+  seq: 13
+
+http:
+  method: POST
+  url: "{{baseUrl}}/reservations"
+  body:
+    type: json
+    data: |
+      {
+        "date":" 2026-04-15",
+        "time": "18:00",
+        "guestCount": 2,
+        "specialRequest": "Window seat"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const data = res.getBody();
+        bru.setVar("reservationId", data.reservationId);
+        bru.setVar("tableId", data.tableId);
+    - type: tests
+      code: |-
+        test("สร้างการจองสำเร็จ", function() {
+          const data = res.getBody();
+          expect(res.getStatus()).to.equal(201);
+          expect(data.status).to.equal("CONFIRMED");
+          // เก็บ ID ไว้เพื่อใช้ยกเลิก
+          
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TableReserve — Admin</title>
+<link rel="stylesheet" href="../shared.css">
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">Table<span>Reserve</span></div>
+    </div>
+    <div class="nav" id="nav-area"></div>
+    <div style="padding:12px 8px;border-top:0.5px solid var(--color-border-tertiary)">
+      <button class="nav-item" data-testid="btn-logout" onclick="logout()" style="color:#A32D2D">⎋ Logout</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="page-title">Admin Dashboard</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">Restaurant Table Reservation System</div>
+      </div>
+      <div class="user-chip">
+        <div id="user-info" style="text-align:right"></div>
+        <div class="avatar" id="user-avatar">--</div>
+      </div>
+    </div>
+    <div class="content" id="content-area"></div>
+  </div>
+</div>
+
+<script src="../middleware.js"></script>
+<script>
+/* ── Guard: admin role required ── */
+const session = requireRole('admin');
+if (!session) throw new Error('Access denied');
+
+/* ── Nav definition ── */
+const NAV = [
+  {id:'admin-dash', label:'Dashboard',       icon:'▦'},
+  {id:'all-res',    label:'All Reservations', icon:'≡'},
+  {id:'reports',    label:'Reports',          icon:'◈'},
+  {id:'settings',   label:'Settings',         icon:'⊙'},
+];
+
+/* ── Screen content ── */
+const SCREENS = {
+  'admin-dash': () => `
+    <div class="story-bar">
+      <span style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">User story:</span>
+      <div class="story-pill active">US-11 Admin Dashboard</div>
+      <div class="story-pill" onclick="goScreen('reports',SCREENS)">US-12 Reports ↗</div>
+      <div class="story-pill" onclick="goScreen('settings',SCREENS)">US-13 Settings ↗</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Total reservations</div><div class="stat-val">348</div></div>
+      <div class="stat"><div class="stat-label">This month</div><div class="stat-val">42</div></div>
+      <div class="stat"><div class="stat-label">Cancellation rate</div><div class="stat-val">8%</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="section-title">Reservation trend (this week)</div>
+        <div style="display:flex;align-items:flex-end;gap:6px;height:80px;padding-top:10px" data-testid="trend-chart">
+          ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((d,i)=>{const h=[35,55,45,70,80,95,60][i];return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;background:#5DCAA5;border-radius:3px 3px 0 0;height:${h}%"></div><div style="font-size:9px;color:var(--color-text-tertiary)">${d}</div></div>`;}).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Quick actions</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn" data-testid="btn-all-res" onclick="goScreen('all-res',SCREENS)" style="text-align:left">≡ View all reservations ↗</button>
+          <button class="btn" data-testid="btn-reports" onclick="goScreen('reports',SCREENS)" style="text-align:left">◈ Generate reports ↗</button>
+          <button class="btn" data-testid="btn-settings" onclick="goScreen('settings',SCREENS)" style="text-align:left">⊙ System settings ↗</button>
+        </div>
+      </div>
+    </div>`,
+
+  'all-res': () => `
+    <div class="story-bar">
+      <div class="story-pill active">All Reservations (Admin — GET /admin/reservations)</div>
+    </div>
+    <div class="card" data-testid="admin-reservations-table">
+      <table class="table-list">
+        <thead><tr><th>ID</th><th>Customer</th><th>Date</th><th>Time</th><th>Guests</th><th>Table</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>#5001</td><td>John Smith</td><td>2026-05-20</td><td>18:00</td><td>4</td><td>T-03</td><td><span class="badge badge-green">CONFIRMED</span></td></tr>
+          <tr><td>#5000</td><td>Amy Park</td><td>2026-05-20</td><td>19:00</td><td>2</td><td>T-01</td><td><span class="badge badge-green">CONFIRMED</span></td></tr>
+          <tr><td>#4999</td><td>Walk-in</td><td>2026-05-20</td><td>12:30</td><td>3</td><td>T-02</td><td><span class="badge badge-blue">WALK-IN</span></td></tr>
+          <tr><td>#4988</td><td>John Smith</td><td>2026-04-10</td><td>19:00</td><td>2</td><td>T-01</td><td><span class="badge badge-amber">PENDING</span></td></tr>
+          <tr><td>#4812</td><td>Ken Ito</td><td>2026-03-15</td><td>12:00</td><td>6</td><td>T-05</td><td><span class="badge badge-red">CANCELLED</span></td></tr>
+        </tbody>
+      </table>
+    </div>`,
+
+  reports: () => `
+    <div class="story-bar">
+      <div class="story-pill" onclick="goScreen('admin-dash',SCREENS)">← Dashboard</div>
+      <div class="story-pill active">US-12 Reports & Statistics</div>
+    </div>
+    <div class="two-col" data-testid="reports-section">
+      <div class="card">
+        <div class="section-title">Reservations by status</div>
+        ${[['CONFIRMED','#5DCAA5',68],['PENDING','#EF9F27',20],['CANCELLED','#E24B4A',12]].map(([l,c,p])=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:${p*1.4}px;height:14px;background:${c};border-radius:3px"></div><span style="font-size:12px;color:var(--color-text-secondary)">${l} ${p}%</span></div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="section-title">Peak hours</div>
+        ${[['12:00–13:00',85],['18:00–19:00',100],['19:00–20:00',92],['20:00–21:00',65]].map(([t,p])=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:11px;color:var(--color-text-secondary);width:80px">${t}</span><div style="flex:1;height:10px;background:var(--color-background-secondary);border-radius:3px"><div style="width:${p}%;height:100%;background:#5DCAA5;border-radius:3px"></div></div></div>`).join('')}
+      </div>
+    </div>`,
+
+  settings: () => `
+    <div class="story-bar">
+      <div class="story-pill" onclick="goScreen('admin-dash',SCREENS)">← Dashboard</div>
+      <div class="story-pill active">US-13 Restaurant Settings (FR-12)</div>
+    </div>
+    <div class="card" data-testid="settings-form">
+      <div class="section-title">FR-12 — Restaurant profile</div>
+      <div class="form-row">
+        <div class="form-group"><label>Restaurant name</label><input type="text" data-testid="input-restaurant-name" value="TableReserve Restaurant"></div>
+        <div class="form-group"><label>Contact number</label><input type="text" data-testid="input-contact" value="02-123-4567"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Opening time</label><input type="time" data-testid="input-open" value="10:00"></div>
+        <div class="form-group"><label>Closing time</label><input type="time" data-testid="input-close" value="22:00"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px"><label>Address</label><textarea data-testid="input-address">123 Main Street, Bangkok 10110</textarea></div>
+      <button class="btn btn-primary" data-testid="btn-save-settings">Save Settings →</button>
+    </div>`,
+};
+
+/* ── Page titles ── */
+window.__titles = {
+  'admin-dash':'Admin Dashboard', 'all-res':'All Reservations',
+  reports:'Reports & Statistics', settings:'System Settings',
+};
+window.__screens = SCREENS;
+
+/* ── Boot ── */
+renderShell(session, NAV, 'admin-dash', SCREENS);
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+info:
+  name: TC-001-009
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: "{{baseUrl}}/auth/register"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |+
+      {
+        "name": "John Doe",
+        "email": "tc001009@test.com",
+        "password": "PasswordOnly",
+        "phone": "0010090000"
+      }
+
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Status code is 400", function() {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
