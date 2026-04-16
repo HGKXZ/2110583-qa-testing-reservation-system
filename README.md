@@ -62,7 +62,9 @@ project-root
 │
 ├── ui-automation/               # UI Automation Testing Source Code
 │
-└── performance-tests/           # Performance Testing Source Code
+├── performance-tests/           # Performance Testing Source Code
+│
+└── security-tests/              # Security Testing Source Code
 ```
 
 ---
@@ -90,7 +92,9 @@ It is designed to simulate **real-world QA engineering practices and team collab
 ## 👤 Course Information
 
 **Course:** 2110583 – Practical Software Testing and Quality Assurance
+
 **Section:** 119
+
 **Institution:** Chulalongkorn University
 
 ---
