@@ -40,10 +40,10 @@ This project focuses on applying **end-to-end software testing practices** based
 | ---------- | -------------------------------- | ------------------------------------------------------ | ------------------ |
 | 6733226921 | Worachart Poungtabtim            | [@HGKXZ](https://github.com/HGKXZ)                     | QA Lead / BA       |
 | 6633014021 | Kongpop Boonma                   | [@kong1912](https://github.com/kong1912)               | Test Case Designer |
-| 6733289421 | Apiwit Saengangkhanawin          | [@ApiwitJoey](https://github.com/ApiwitJoey)           | API Tester         |
-| 6733288821 | Aphiwich Sangpet                 | [@AphiwichCEDT002](https://github.com/AphiwichCEDT002) | Automated Tester   |
+| 6733288821 | Aphiwich Sangpet                 | [@AphiwichCEDT002](https://github.com/AphiwichCEDT002) | API Tester         |
+| 6733169821 | Patcharapon Srisuwan             | [@rirhcceez](https://github.com/rirhcceez)             | Automated Tester   |
 | 6733065121 | Nattarat Samartkit               | [@kwank6704](https://github.com/kwank6704)             | Performance Tester |
-| 6733169821 | Patcharapon Srisuwan             | [@rirhcceez](https://github.com/rirhcceez)             | Security Tester    |
+| 6733289421 | Apiwit Saengangkhanawin          | [@ApiwitJoey](https://github.com/ApiwitJoey)           | Security Tester    |
 
 ---
 
