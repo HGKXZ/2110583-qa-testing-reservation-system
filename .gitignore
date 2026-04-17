@@ -2,7 +2,8 @@
 test-results/
 playwright-report/
 blob-report/
-playwright/.cache
+.cache/
+.auth/
 
 # Dependencies
 node_modules/
